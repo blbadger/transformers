@@ -12,13 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Testing suite for the PyTorch ViTDet model. """
-
+"""Testing suite for the PyTorch ViTDet model."""
 
 import unittest
 
 from transformers import VitDetConfig
-from transformers.testing_utils import require_torch, torch_device
+from transformers.testing_utils import is_flaky, require_torch, torch_device
 from transformers.utils import is_torch_available
 
 from ...test_backbone_common import BackboneTesterMixin
@@ -175,22 +174,26 @@ class VitDetModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
         self.model_tester = VitDetModelTester(self)
         self.config_tester = ConfigTester(self, config_class=VitDetConfig, has_text_modality=False, hidden_size=37)
 
+    @is_flaky(max_attempts=3, description="`torch.nn.init.trunc_normal_` is flaky.")
+    def test_initialization(self):
+        super().test_initialization()
+
     # TODO: Fix me (once this model gets more usage)
-    @unittest.skip("Does not work on the tiny model as we keep hitting edge cases.")
+    @unittest.skip(reason="Does not work on the tiny model as we keep hitting edge cases.")
     def test_cpu_offload(self):
         super().test_cpu_offload()
 
     # TODO: Fix me (once this model gets more usage)
-    @unittest.skip("Does not work on the tiny model as we keep hitting edge cases.")
+    @unittest.skip(reason="Does not work on the tiny model as we keep hitting edge cases.")
     def test_disk_offload_bin(self):
         super().test_disk_offload()
 
-    @unittest.skip("Does not work on the tiny model as we keep hitting edge cases.")
+    @unittest.skip(reason="Does not work on the tiny model as we keep hitting edge cases.")
     def test_disk_offload_safetensors(self):
         super().test_disk_offload()
 
     # TODO: Fix me (once this model gets more usage)
-    @unittest.skip("Does not work on the tiny model as we keep hitting edge cases.")
+    @unittest.skip(reason="Does not work on the tiny model as we keep hitting edge cases.")
     def test_model_parallelism(self):
         super().test_model_parallelism()
 
@@ -201,7 +204,7 @@ class VitDetModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
     def test_inputs_embeds(self):
         pass
 
-    def test_model_common_attributes(self):
+    def test_model_get_set_embeddings(self):
         config, _ = self.model_tester.prepare_config_and_inputs_for_common()
 
         for model_class in self.all_model_classes:

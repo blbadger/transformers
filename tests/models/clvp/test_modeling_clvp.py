@@ -12,8 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Testing suite for the PyTorch Clvp model. """
-
+"""Testing suite for the PyTorch Clvp model."""
 
 import gc
 import tempfile
@@ -45,7 +44,6 @@ if is_torch_available():
     import torch
 
     from transformers import ClvpEncoder, ClvpForCausalLM, ClvpModel, ClvpModelForConditionalGeneration
-    from transformers.models.clvp.modeling_clvp import CLVP_PRETRAINED_MODEL_ARCHIVE_LIST
 
 from transformers import ClvpFeatureExtractor, ClvpTokenizer
 
@@ -344,6 +342,7 @@ class ClvpModelForConditionalGenerationTester:
         self.parent = parent
         self.clvp_encoder_tester = ClvpEncoderTester(parent)
         self.is_training = is_training
+        self.batch_size = self.clvp_encoder_tester.batch_size  # need bs for batching_equivalence test
 
     def get_config(self):
         decoder_config = ClvpDecoderConfig(
@@ -372,7 +371,9 @@ class ClvpModelForConditionalGenerationTester:
     def prepare_config_and_inputs(self):
         _, input_ids, attention_mask = self.clvp_encoder_tester.prepare_config_and_inputs()
 
-        ds = datasets.load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
+        ds = datasets.load_dataset(
+            "hf-internal-testing/librispeech_asr_dummy", "clean", split="validation", trust_remote_code=True
+        )
         ds = ds.cast_column("audio", datasets.Audio(sampling_rate=22050))
         _, audio, sr = ds.sort("id").select(range(1))[:1]["audio"][0].values()
 
@@ -490,7 +491,7 @@ class ClvpModelForConditionalGenerationTest(ModelTesterMixin, unittest.TestCase)
         pass
 
     @unittest.skip(reason="ClvpModelForConditionalGeneration does not have get_input_embeddings")
-    def test_model_common_attributes(self):
+    def test_model_get_set_embeddings(self):
         pass
 
     # override as the `logit_scale` parameter initilization is different for Clvp
@@ -540,9 +541,9 @@ class ClvpModelForConditionalGenerationTest(ModelTesterMixin, unittest.TestCase)
 
     @slow
     def test_model_from_pretrained(self):
-        for model_name in CLVP_PRETRAINED_MODEL_ARCHIVE_LIST[:1]:
-            model = ClvpModelForConditionalGeneration.from_pretrained(model_name)
-            self.assertIsNotNone(model)
+        model_name = "susnato/clvp_dev"
+        model = ClvpModelForConditionalGeneration.from_pretrained(model_name)
+        self.assertIsNotNone(model)
 
 
 # Since Clvp has a lot of different models connected with each other it's better to test each of them individually along
@@ -554,7 +555,9 @@ class ClvpModelForConditionalGenerationTest(ModelTesterMixin, unittest.TestCase)
 class ClvpIntegrationTest(unittest.TestCase):
     def setUp(self):
         self.text = "This is an example text."
-        ds = datasets.load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
+        ds = datasets.load_dataset(
+            "hf-internal-testing/librispeech_asr_dummy", "clean", split="validation", trust_remote_code=True
+        )
         ds = ds.cast_column("audio", datasets.Audio(sampling_rate=22050))
         _, self.speech_samples, self.sr = ds.sort("id").select(range(1))[:1]["audio"][0].values()
 

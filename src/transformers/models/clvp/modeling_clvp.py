@@ -13,8 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" PyTorch CLVP model."""
-
+"""PyTorch CLVP model."""
 
 import copy
 import math
@@ -54,11 +53,6 @@ from .configuration_clvp import (
 logger = logging.get_logger(__name__)
 
 _CHECKPOINT_FOR_DOC = "susnato/clvp_dev"
-
-CLVP_PRETRAINED_MODEL_ARCHIVE_LIST = [
-    "susnato/clvp_dev",
-    # See all Clvp models at https://huggingface.co/models?filter=clvp
-]
 
 
 # Copied from transformers.models.clip.modeling_clip.contrastive_loss
@@ -255,7 +249,7 @@ class ClvpRotaryPositionalEmbedding(nn.Module):
     def __init__(self, config):
         super().__init__()
         dim = max(config.projection_dim // (config.num_attention_heads * 2), 32)
-        inv_freq = 1.0 / (10000 ** (torch.arange(0, dim, 2).float() / dim))
+        inv_freq = 1.0 / (10000 ** (torch.arange(0, dim, 2, dtype=torch.int64).float() / dim))
 
         self.register_buffer("inv_freq", inv_freq)
         self.cached_sequence_length = None
@@ -1687,7 +1681,7 @@ class ClvpModelForConditionalGeneration(ClvpPreTrainedModel):
 
         >>> # Define the Text and Load the Audio (We are taking an audio example from HuggingFace Hub using `datasets` library)
         >>> text = "This is an example text."
-        >>> ds = datasets.load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
+        >>> ds = datasets.load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation", trust_remote_code=True)
         >>> ds = ds.cast_column("audio", datasets.Audio(sampling_rate=22050))
         >>> _, audio, sr = ds.sort("id").select(range(1))[:1]["audio"][0].values()
 
@@ -1760,7 +1754,7 @@ class ClvpModelForConditionalGeneration(ClvpPreTrainedModel):
         >>> # Define the Text and Load the Audio (We are taking an audio example from HuggingFace Hub using `datasets` library)
         >>> text = "This is an example text."
 
-        >>> ds = datasets.load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation")
+        >>> ds = datasets.load_dataset("hf-internal-testing/librispeech_asr_dummy", "clean", split="validation", trust_remote_code=True)
         >>> ds = ds.cast_column("audio", datasets.Audio(sampling_rate=22050))
         >>> _, audio, sr = ds.sort("id").select(range(1))[:1]["audio"][0].values()
 
