@@ -742,9 +742,9 @@ class LlamaDecoderLayer(nn.Module):
             use_cache=use_cache,
             cache_position=cache_position,
         )
-        mixer_states = self.mixer_layer(hidden_states)
-        hidden_states = residual + hidden_states + mixer_states
-
+        mixer_output = self.mixer_layer(hidden_states)
+        hidden_states = hidden_states + mixer_output + residual
+        
         # Fully Connected
         residual = hidden_states
         hidden_states = self.post_attention_layernorm(hidden_states)
